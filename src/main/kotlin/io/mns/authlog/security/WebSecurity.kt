@@ -16,17 +16,21 @@ import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @EnableWebSecurity
-class WebSecurity(private val userDetailsService: UserDetailsServiceImpl, private val bCryptPasswordEncoder: BCryptPasswordEncoder, private val logRepository: LogRepository) :
-        WebSecurityConfigurerAdapter() {
+class WebSecurity(
+    private val userDetailsService: UserDetailsServiceImpl,
+    private val bCryptPasswordEncoder: BCryptPasswordEncoder,
+    private val logRepository: LogRepository
+) :
+    WebSecurityConfigurerAdapter() {
     override fun configure(http: HttpSecurity?) {
         http ?: return
         http.cors().and().csrf().disable().authorizeRequests()
-                .antMatchers(HttpMethod.POST, SIGN_UP_URL).permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .addFilter(JWTAuthenticationFilter(authenticationManager(), logRepository))
-                .addFilter(JWTAuthorizationFilter(authenticationManager()))
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+            .antMatchers(HttpMethod.POST, SIGN_UP_URL).permitAll()
+            .anyRequest().authenticated()
+            .and()
+            .addFilter(JWTAuthenticationFilter(authenticationManager(), logRepository))
+            .addFilter(JWTAuthorizationFilter(authenticationManager()))
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
     }
 
@@ -38,7 +42,15 @@ class WebSecurity(private val userDetailsService: UserDetailsServiceImpl, privat
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val source = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/**", CorsConfiguration().applyPermitDefaultValues())
+        val corsConfig = CorsConfiguration()
+        corsConfig.addAllowedMethod("DELETE")
+        corsConfig.addAllowedMethod("GET")
+        corsConfig.addAllowedMethod("POST")
+
+        source.registerCorsConfiguration(
+            "/**",
+            corsConfig.applyPermitDefaultValues()
+        )
         return source
     }
 }
